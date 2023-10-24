@@ -15,7 +15,7 @@ from commands import ping
 from commands import limit
 from commands import eightball
 from commands import blackjack
-from commands import hangman
+# from commands import hangman
 from commands import leaderboard
 
 # Load environment variables from .env file
@@ -38,7 +38,7 @@ ping.register_ping_command(client)
 limit.register_limit_command(client)
 eightball.register_eight_ball_command(client)
 blackjack.register_blackjack_command(client)
-hangman.register_hangman_command(client)
+# hangman.register_hangman_command(client)
 leaderboard.register_leaderboard_command(client)
 
 # Retrieve the DISCORD_TOKEN environment variable
