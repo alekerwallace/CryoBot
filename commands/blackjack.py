@@ -55,9 +55,6 @@ def register_blackjack_command(client):
         )
         # Edit the temporary message with the game embed
         await message.edit(content='', embed=embed)  # Update the temporary message with the game embed
-        
-        # The following line is removed as it sends the initial game embed again
-        # message = await interaction.channel.send(embed=embed)
 
         await message.add_reaction("✅")  # Reaction for "Hit"
         await message.add_reaction("❌")  # Reaction for "Stand"
