@@ -48,7 +48,7 @@ def register_blackjack_command(client):
         # Creating the initial embed with instructions
         embed = discord.Embed(
             title="Blackjack",
-            description=f"Click ✅ to hit or ❌ to stand\n\n"
+            description=f"Click ✅ to hit, ❌ to stand, or 🪚 to split.\n\n"
                         f"Your hand: {', '.join(player_hand)}\nTotal: {hand_value(player_hand)}\n\n"  # Added \n here
                         f"Dealer's face-up card: {dealer_hand[0]}",
             color=0x00FF00
@@ -82,7 +82,8 @@ def register_blackjack_command(client):
             if str(reaction.emoji) == "🪚": # player wants to split
                 player_hand_2 = [ player_hand.pop(1) ]
                 split_hand = True
-                description =  f"Click ✅ to hit or ❌ to stand\n\n"
+                description = f"**Playing the first hand**\n\n"
+                description += f"Click ✅ to hit or ❌ to stand\n\n"
                 description += f"Your hand: {', '.join(player_hand)}\nTotal: {hand_value(player_hand)}\n\n"
                 description += f"Your second hand: {', '.join(player_hand_2)}\nTotal: {hand_value(player_hand_2)}\n\n"
                 description += f"Dealer's face-up card: {dealer_hand[0]}"
@@ -95,16 +96,17 @@ def register_blackjack_command(client):
                     description =  f"Your hand: {', '.join(player_hand)}\nTotal: {hand_value(player_hand)}\n\n"
                     if split_hand:
                         description += f"Your second hand: {', '.join(player_hand_2)}\nTotal: {hand_value(player_hand_2)}\n\n"
-                    description += f"Dealer's face-up card: {dealer_hand[0]}\n\n**You busted! Game over.**"
+                    description += f"Dealer's face-up card: {dealer_hand[0]}\n\n**Bust, you lose.**"
 
                     embed.description = description
                     await message.edit(embed=embed)
-                    await message.clear_reactions()  # Clear reactions here
-                    if split_hand:
-                        break
-                    return  # Exit the function if the player busts
+                    await message.clear_reactions()  # Clear reactions here:
+                    break
                 else:
-                    description =  f"Click ✅ to hit or ❌ to stand\n\n"
+                    description = ""
+                    if split_hand:
+                        description = f"**Playing the first hand**\n\n"
+                    description += f"Click ✅ to hit or ❌ to stand\n\n"
                     description += f"Your hand: {', '.join(player_hand)}\nTotal: {hand_value(player_hand)}\n\n"
                     if split_hand:
                         description += f"Your second hand: {', '.join(player_hand_2)}\nTotal: {hand_value(player_hand_2)}\n\n"
@@ -139,11 +141,11 @@ def register_blackjack_command(client):
                 if hand_value(player_hand_2) > 21:
                     description = (f"Your first hand: {', '.join(player_hand)}\nTotal: {hand_value(player_hand)}\n\n"
                                    f"Your second hand: {', '.join(player_hand_2)}\nTotal: {hand_value(player_hand_2)}\n\n"
-                                   f"Dealer's face-up card: {dealer_hand[0]}\n\n**You busted! Game over.**")  # Updated description
+                                   f"Dealer's face-up card: {dealer_hand[0]}\n\n**Bust, you lose.**")  # Updated description
                     embed.description = description
                     await message.edit(embed=embed)
                     await message.clear_reactions()  # Clear reactions here
-                    return  # Exit the function if the player busts
+                    break 
                 embed.description = description
                 await message.edit(embed=embed)
             else:
@@ -162,60 +164,39 @@ def register_blackjack_command(client):
         # Update user_scores in the blackjack command
         user_id = str(interaction.user.id)
         if user_id not in user_scores:
-            user_scores[user_id] = {'wins': 0, 'losses': 0}
+            user_scores[user_id] = {'wins': 0, 'losses': 0, 'ties': 0}
 
-        # Split hand score logic & update user_scores for leaderboard.py
+        # Function to compare a single hand with the dealer's hand
+        def compare_hand(player_total, dealer_total):
+            if player_total > 21:
+                return "Bust, you lose", 0, 1, 0  # Player busts
+            elif dealer_total > 21:
+                return "Dealer bust, you win", 1, 0, 0  # Dealer busts
+            elif player_total > dealer_total:
+                return "You win", 1, 0, 0  # Player wins
+            elif player_total < dealer_total:
+                return "You lose", 0, 1, 0  # Player loses
+            else:
+                return "You tie", 0, 0, 1  # Tie
+
+        # Apply this function to both hands
+        outcome_1, wins_1, losses_1, ties_1 = compare_hand(player_total, dealer_total)
         if split_hand:
-            if dealer_total > 21:
-                outcome = "**Dealer bust, you win both hands!**"
-                user_scores[user_id]['wins'] += 2
-            elif dealer_total < player_total and dealer_total < player_total_2:
-                outcome = "**You win both hands!**"
-                user_scores[user_id]['wins'] += 2
-            elif dealer_total < player_total and dealer_total == player_total_2:
-                outcome = "**You win the first hand and tie the second.**"
-                user_scores[user_id]['wins'] += 1
-                # Could add something to document number of ties here
-            elif dealer_total < player_total and dealer_total > player_total_2:
-                outcome = "**You win the first hand and lose the second.**"
-                user_scores[user_id]['wins'] += 1
-                user_scores[user_id]['losses'] += 1
-            elif dealer_total == player_total and dealer_total < player_total_2:
-                outcome = "**You tie the first hand and win the second**"
-                user_scores[user_id]['wins'] += 1
-            elif dealer_total == player_total and dealer_total == player_total_2:
-                outcome = "**You tie both hands**"
-            elif dealer_total == player_total and dealer_total > player_total_2:
-                outcome = "**You tie the first hand and lose the second.**"
-                user_scores[user_id]['wins'] += 1
-            elif dealer_total > player_total and dealer_total > player_total_2:
-                outcome = "**You lose both hands.**"
-                user_scores[user_id]['losses'] += 2
-            elif dealer_total > player_total and dealer_total == player_total_2:
-                outcome = "**You lose the first hand and tie the second.**"
-                user_scores[user_id]['losses'] += 1
-            elif dealer_total > player_total and dealer_total < player_total_2:
-                outcome = "**You lose the first hand and win the second.**"
-                user_scores[user_id]['wins'] += 1
-                user_scores[user_id]['losses'] += 1
-            else: 
-                outcome = "**Message cryopumpkin.**"
-
-        # Not split hand score logic & update user_scores for leaderboard.py
+            outcome_2, wins_2, losses_2, ties_2 = compare_hand(player_total_2, dealer_total)
+            total_wins = wins_1 + wins_2
+            total_losses = losses_1 + losses_2
+            total_ties = ties_1 + ties_2
+            outcome = f"**First hand: {outcome_1}, Second hand: {outcome_2}.**"
         else:
-            if dealer_total > 21:
-                outcome = "**Dealer bust, you win!**"
-                user_scores[user_id]['wins'] += 1
-            elif dealer_total < player_total:
-                outcome = "**You win!**"
-                user_scores[user_id]['wins'] += 1
-            elif dealer_total == player_total:
-                outcome = "**You tie.**"
-            elif dealer_total > player_total:
-                outcome = "**You lose.**"
-                user_scores[user_id]['losses'] += 1
-            else: 
-                outcome = "**Message cryopumpkin.**"
+            total_wins = wins_1
+            total_losses = losses_1
+            total_ties = ties_1
+            outcome = f"**{outcome_1}.**"
+
+        # Update the user's scores
+        user_scores[user_id]['wins'] += total_wins
+        user_scores[user_id]['losses'] += total_losses
+        user_scores[user_id]['ties'] += total_ties
 
         print(user_scores)  # Debug print here        
 
@@ -226,11 +207,7 @@ def register_blackjack_command(client):
         description += f"Dealer's hand: {', '.join(dealer_hand)}\nTotal: {dealer_total}\n\n{outcome}"
         embed.description = description  
 
-
         await message.edit(embed=embed)  # Updating the embed with the game outcome
         
         # Clear all reactions after the game has concluded
         await message.clear_reactions()
-
-        # The following line is removed as it sends a 'Game over.' message at the end
-        # await interaction.channel.send("Game over.")
