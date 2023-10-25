@@ -5,7 +5,7 @@ current_count = 0
 last_user_id = None
 
 def register_counting_command(client):
-    @client.tree.command(name="counting", description="Counting game command")
+    @client.tree.command(name="set-up-counting", description="Counting game command")
     async def counting(interaction: discord.Interaction):
         global current_count, last_user_id
 

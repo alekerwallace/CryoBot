@@ -161,7 +161,7 @@ def register_blackjack_command(client):
         # Update user_scores in the blackjack command
         user_id = str(interaction.user.id)
         if user_id not in user_scores:
-            user_scores[user_id] = {'wins': 0, 'losses': 0, 'ties': 0}
+            user_scores[user_id] = {'wins': 0, 'losses': 0, 'pushes': 0}
 
         # Function to compare a single hand with the dealer's hand
         def compare_hand(player_total, dealer_total):
@@ -174,26 +174,26 @@ def register_blackjack_command(client):
             elif player_total < dealer_total:
                 return "You lose", 0, 1, 0  # Player loses
             else:
-                return "You tie", 0, 0, 1  # Tie
+                return "Push", 0, 0, 1  # Tie
 
         # Apply this function to both hands
-        outcome_1, wins_1, losses_1, ties_1 = compare_hand(player_total, dealer_total)
+        outcome_1, wins_1, losses_1, pushes_1 = compare_hand(player_total, dealer_total)
         if split_hand:
-            outcome_2, wins_2, losses_2, ties_2 = compare_hand(player_total_2, dealer_total)
+            outcome_2, wins_2, losses_2, pushes_2 = compare_hand(player_total_2, dealer_total)
             total_wins = wins_1 + wins_2
             total_losses = losses_1 + losses_2
-            total_ties = ties_1 + ties_2
+            total_pushes = pushes_1 + pushes_2
             outcome = f"**First hand: {outcome_1}, Second hand: {outcome_2}.**"
         else:
             total_wins = wins_1
             total_losses = losses_1
-            total_ties = ties_1
+            total_pushes = pushes_1
             outcome = f"**{outcome_1}.**"
 
         # Update the user's scores
         user_scores[user_id]['wins'] += total_wins
         user_scores[user_id]['losses'] += total_losses
-        user_scores[user_id]['ties'] += total_ties
+        user_scores[user_id]['pushes'] += total_pushes
 
         print(user_scores)  # Debug print here        
 

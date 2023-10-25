@@ -18,6 +18,7 @@ from commands import blackjack
 from commands import hangman
 from commands import leaderboard
 from commands import counting
+from commands import message
 
 # Load environment variables from .env file
 load_dotenv()
@@ -35,8 +36,18 @@ class SlashClient(discord.Client):
     # Set bot status
     async def on_connect(self):
         print(f'Logged in as {client.user}')
-        game = discord.Game("with the API")
-        await client.change_presence(status=discord.Status.online, activity=game)
+        
+        # Error: coffee.exe not found
+#        custom_activity = discord.CustomActivity(name="error: coffee.exe not found")
+#        await client.change_presence(activity=custom_activity)
+
+        # Listening to humans 😬
+        music = discord.Activity(type=discord.ActivityType.listening, name="to humans 😬")
+        await client.change_presence(activity=music)
+
+        # Playing with the API
+#        game = discord.Game("with the API")
+#        await client.change_presence(status=discord.Status.online, activity=game)
 
 # Create an instance of SlashClient
 client = SlashClient()
@@ -49,6 +60,7 @@ blackjack.register_blackjack_command(client)
 hangman.register_hangman_command(client)
 leaderboard.register_leaderboard_command(client)
 counting.register_counting_command(client)
+message.register_message_command(client)
 
 # Retrieve the DISCORD_TOKEN environment variable
 token = os.environ.get('DISCORD_TOKEN')
