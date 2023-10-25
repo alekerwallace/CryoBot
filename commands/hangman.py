@@ -9,9 +9,33 @@ def get_hangman_word():
 
 # Mapping emojis to letters
 emoji_to_letter = {
-    "🅰️": "a",
+    "🇦": "a",
     "🇧": "b",
-}
+    "🇨": "c",
+    "🇩": "d",
+    "🇪": "e",
+    "🇫": "f",
+    "🇬": "g",
+    "🇭": "h",
+    "🇮": "i",
+    "🇯": "j",
+    "🇰": "k",
+    "🇱": "l",
+    "🇲": "m",
+    "🇳": "n",
+    "🇴": "o",
+    "🇵": "p",
+    "🇶": "q",
+    "🇷": "r",
+    "🇸": "s",
+    "🇹": "t",
+    "🇺": "u",
+    "🇻": "v",
+    "🇼": "w",
+    "🇽": "x",
+    "🇾": "y",
+    "🇿": "z"
+    }
 
 # Word is displayed with guessed letters        
 def get_display_word(word, correct_guesses):
@@ -57,7 +81,7 @@ def register_hangman_command(client):
 
         # Defining the check for reactions
         def check(reaction, user):
-            return user == interaction.user and str(reaction.emoji) in ["🅰️", "🇧"] and reaction.message.id == message.id
+            return user == interaction.user and str(reaction.emoji) in ["🇦", "🇧", "🇨"] and reaction.message.id == message.id
 
         # Checking the emoji 
         while True:
@@ -70,3 +94,36 @@ def register_hangman_command(client):
             letter = get_letter(str(reaction.emoji))
             if letter:
                 print(f"The letter for emoji {reaction.emoji} is {letter}")
+
+            # Main game loop
+            async def hangman_game(interaction, client, message, embed, word_to_guess):
+                correct_guesses = []
+                attempts_remaining = 6  # Adjust as needed
+                incorrect_guesses = []  # List to keep track of incorrect guesses
+                while attempts_remaining > 0:
+                    display_word = get_display_word(word_to_guess, correct_guesses)
+                    embed.description = f'Word: {display_word}  Attempts remaining: {attempts_remaining}\nIncorrect guesses: {", ".join(incorrect_guesses)}'
+                    await message.edit(embed=embed)  # Edit the embed within the message
+                    
+                    def check(reaction, user):
+                        return (
+                            user == interaction.user and
+                            reaction.message.id == message.id and
+                            str(reaction.emoji) in emoji_to_letter
+                        )
+                    
+                    reaction, user = await client.wait_for('reaction_add', check=check)
+
+                    if guessed_letter in correct_guesses:
+                        embed.description = f'You already guessed the letter {guessed_letter}. Try a different letter.'
+                        await message.edit(embed=embed)  # Edit the embed within the message
+                        continue  # Skip to the next iteration of the loop
+                    correct_guesses.append(guessed_letter)
+                    if guessed_letter not in word_to_guess:
+                        incorrect_guesses.append(guessed_letter)  # Add incorrect guess to the list
+                        attempts_remaining -= 1
+                        embed.description = f'Incorrect guess. Attempts remaining: {attempts_remaining}\nIncorrect guesses: {", ".join(incorrect_guesses)}'
+                        await message.edit(embed=embed)  # Edit the embed within the message
+
+                embed.description = f'Sorry, the word was: {word_to_guess}'
+                await message.edit(embed=embed)  # Edit the embed within the message
