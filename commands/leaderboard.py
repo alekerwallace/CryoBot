@@ -19,7 +19,7 @@ def register_leaderboard_command(client):
         leaderboard_text = ''  # Define leaderboard_text here before using it
         for i, (user_id, scores) in enumerate(sorted_scores, start=1):
             user = await client.fetch_user(int(user_id))
-            leaderboard_text += f"{i}. {user.name}: {scores['wins']} wins, {scores['pushes']} ties, {scores['losses']} losses\n"
+            leaderboard_text += f"{i}. {user.name}: {scores['wins']} wins, {scores['losses']} losses, {scores['pushes']} pushes\n"
         
         # Now you can prepend the reset information to leaderboard_text
         leaderboard_text = f"Last reset: {hours_since_reset} hours ago\n\n" + leaderboard_text

@@ -37,6 +37,8 @@ emoji_to_letter = {
     "🇿": "z"
     }
 
+emoji_list = list(emoji_to_letter.keys())
+
 # Word is displayed with guessed letters        
 def get_display_word(word, correct_guesses):
     display_word = ''
@@ -61,16 +63,29 @@ def register_hangman_command(client):
         # Assuming that the word to guess and the guessed letters are known
         word_to_guess = get_hangman_word()
 
+        def letter_in_word(letter):
+            if letter.lower() in word_to_guess.lower():
+                return True
+            else:
+                return False
+
+        attempts_remaining = len(word_to_guess) + 10
+
         # Get the displayed word
-        display_word = get_display_word(word_to_guess, [])
+        correct_guesses = []
+        display_word = get_display_word(word_to_guess, correct_guesses)
 
         # Print the displayed word to the console
         print(display_word)
 
+        def get_description(message):
+            display_word = get_display_word(word_to_guess, correct_guesses)
+            return f"Word to guess: {display_word}\n\n**{message} Attempts remaining: {attempts_remaining}**"
+
         # Creating the initial embed with instructions
         embed = discord.Embed(
             title="Hangman",
-            description=f"Word to guess: {display_word}",
+            description=get_description("New game."),
             color=0x00FF00)
 
         # Edit the temporary message with the game embed
@@ -81,7 +96,7 @@ def register_hangman_command(client):
 
         # Defining the check for reactions
         def check(reaction, user):
-            return user == interaction.user and str(reaction.emoji) in ["🇦", "🇧", "🇨"] and reaction.message.id == message.id
+            return user == interaction.user and str(reaction.emoji) in emoji_list and reaction.message.id == message.id
 
         # Checking the emoji 
         while True:
@@ -94,36 +109,17 @@ def register_hangman_command(client):
             letter = get_letter(str(reaction.emoji))
             if letter:
                 print(f"The letter for emoji {reaction.emoji} is {letter}")
-
-            # Main game loop
-            async def hangman_game(interaction, client, message, embed, word_to_guess):
-                correct_guesses = []
-                attempts_remaining = 6  # Adjust as needed
-                incorrect_guesses = []  # List to keep track of incorrect guesses
-                while attempts_remaining > 0:
+                attempts_remaining -= 1
+                if attempts_remaining < 1:
+                    embed.description=get_description("No attempts remaining. You lose.")
+                    await message.remove_reaction(reaction, user)
+                elif letter_in_word(letter):
+                    correct_guesses.append(letter)
                     display_word = get_display_word(word_to_guess, correct_guesses)
-                    embed.description = f'Word: {display_word}  Attempts remaining: {attempts_remaining}\nIncorrect guesses: {", ".join(incorrect_guesses)}'
-                    await message.edit(embed=embed)  # Edit the embed within the message
-                    
-                    def check(reaction, user):
-                        return (
-                            user == interaction.user and
-                            reaction.message.id == message.id and
-                            str(reaction.emoji) in emoji_to_letter
-                        )
-                    
-                    reaction, user = await client.wait_for('reaction_add', check=check)
-
-                    if guessed_letter in correct_guesses:
-                        embed.description = f'You already guessed the letter {guessed_letter}. Try a different letter.'
-                        await message.edit(embed=embed)  # Edit the embed within the message
-                        continue  # Skip to the next iteration of the loop
-                    correct_guesses.append(guessed_letter)
-                    if guessed_letter not in word_to_guess:
-                        incorrect_guesses.append(guessed_letter)  # Add incorrect guess to the list
-                        attempts_remaining -= 1
-                        embed.description = f'Incorrect guess. Attempts remaining: {attempts_remaining}\nIncorrect guesses: {", ".join(incorrect_guesses)}'
-                        await message.edit(embed=embed)  # Edit the embed within the message
-
-                embed.description = f'Sorry, the word was: {word_to_guess}'
-                await message.edit(embed=embed)  # Edit the embed within the message
+                    if '-' in display_word:
+                        embed.description=get_description("Correct guess!")
+                    else:
+                        embed.description=get_description("YOU WIN!")
+                else:
+                    embed.description=get_description("WRONG!")
+                await message.edit(embed=embed)

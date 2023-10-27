@@ -17,8 +17,8 @@ from commands import eightball
 from commands import blackjack
 from commands import hangman
 from commands import leaderboard
-from commands import counting
-from commands import message
+#from commands import counting
+#from commands import coinflip
 
 # Load environment variables from .env file
 load_dotenv()
@@ -41,6 +41,18 @@ class SlashClient(discord.Client):
 #        custom_activity = discord.CustomActivity(name="error: coffee.exe not found")
 #        await client.change_presence(activity=custom_activity)
 
+        # Fishing for laughs
+#        custom_activity = discord.CustomActivity(name="fishing for laughs 🐟")
+#        await client.change_presence(activity=custom_activity)
+
+        # Byte me
+#        custom_activity = discord.CustomActivity(name="byte me")
+#        await client.change_presence(activity=custom_activity)
+
+        # Zero Kelvin cool
+#        custom_activity = discord.CustomActivity(name="zero Kelvin cool")
+#        await client.change_presence(activity=custom_activity)
+
         # Listening to humans 😬
         music = discord.Activity(type=discord.ActivityType.listening, name="to humans 😬")
         await client.change_presence(activity=music)
@@ -59,8 +71,8 @@ eightball.register_eight_ball_command(client)
 blackjack.register_blackjack_command(client)
 hangman.register_hangman_command(client)
 leaderboard.register_leaderboard_command(client)
-counting.register_counting_command(client)
-message.register_message_command(client)
+#counting.register_counting_command(client)
+#message.register_coin_flip_command(client)
 
 # Retrieve the DISCORD_TOKEN environment variable
 token = os.environ.get('DISCORD_TOKEN')
