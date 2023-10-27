@@ -79,7 +79,7 @@ def register_hangman_command(client):
             else:
                 return False
 
-        attempts_remaining = len(word_to_guess) + 10
+        attempts_remaining = 6
 
         # Get the displayed word
         correct_guesses = []
@@ -95,7 +95,7 @@ def register_hangman_command(client):
         # Creating the initial embed with instructions
         embed = discord.Embed(
             title="Hangman",
-            description=get_description("New game."),
+            description=get_description("New game!"),
             color=0x00FF00)
 
         # Edit the temporary message with the game embed
@@ -119,13 +119,7 @@ def register_hangman_command(client):
             letter = get_letter(str(reaction.emoji))
             if letter:
                 print(f"The letter for emoji {reaction.emoji} is {letter}")
-                if attempts_remaining < 0:
-                    await message.remove_reaction(reaction, user)
-                else:
-                    attempts_remaining -= 1
-                if attempts_remaining < 1:
-                    embed.description=get_description(f"You lose.\n\nThe word was {word_to_guess}")
-                elif letter_in_word(letter):
+                if letter_in_word(letter):
                     correct_guesses.append(letter)
                     display_word = get_display_word(word_to_guess, correct_guesses)
                     if '-' in display_word:
@@ -134,5 +128,12 @@ def register_hangman_command(client):
                         embed.description=get_description("YOU WIN!")
                         attempts_remaining=0
                 else:
-                    embed.description=get_description("WRONG!")
+                    if attempts_remaining < 0:
+                        await message.remove_reaction(reaction, user)
+                    else:
+                        attempts_remaining -= 1
+                    if attempts_remaining < 1:
+                        embed.description=get_description(f"You lose.\n\nThe word was {word_to_guess}")
+                    else:
+                        embed.description=get_description("WRONG!")
                 await message.edit(embed=embed)
