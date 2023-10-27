@@ -54,7 +54,7 @@ class SlashClient(discord.Client):
 #        await client.change_presence(activity=custom_activity)
 
         # Listening to humans 😬
-        music = discord.Activity(type=discord.ActivityType.listening, name="to humans 😬")
+        music = discord.Activity(type=discord.ActivityType.listening, name="humans 😬")
         await client.change_presence(activity=music)
 
         # Playing with the API

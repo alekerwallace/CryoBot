@@ -16,6 +16,9 @@ def register_blackjack_command(client):
 
         # Creating and shuffling the deck
         deck: deck = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King', 'Ace'] * 4
+#        suits = [':hearts:', ':diamonds:', ':clubs:', ':spades:']
+#        values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King', 'Ace']
+#        deck = [{'Value': value, 'Suit': suit} for suit in suits for value in values]
         random.shuffle(deck)
 
         # Function to convert face cards and aces to their numerical values
