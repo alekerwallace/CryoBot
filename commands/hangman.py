@@ -1,27 +1,16 @@
 import discord
 import random
 from discord.ext import commands
-import nltk
-from nltk.corpus import reuters
-from nltk import FreqDist
+import random
 
-# Download the dataset
-nltk.download('reuters')
+def load_common_words():
+    with open('common_words.txt', 'r') as f:
+        return [line.strip() for line in f]
 
-# Preprocess the words: convert to lowercase and filter out non-words
-words = [word.lower() for word in reuters.words() if word.isalpha()]
-
-# Create a frequency distribution
-freq_dist = FreqDist(words)
-
-# Get the 3000 most common words
-common_words = [word for word, freq in freq_dist.most_common(3000)]
+common_words = load_common_words()
 
 def get_hangman_word():
-    while True:
-        word = random.choice(common_words)
-        if len(word) >= 5:
-            return word
+    return random.choice(common_words)
 
 # Function for game to select word
 #word_list = ['python', 'java', 'javascript', 'discord', 'hangman']
