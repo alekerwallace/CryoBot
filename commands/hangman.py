@@ -96,7 +96,7 @@ def register_hangman_command(client):
         embed = discord.Embed(
             title="Hangman",
             description=get_description("New game!"),
-            color=0x00FF00)
+            color=0xfdfdfd)
 
         # Edit the temporary message with the game embed
         await message.edit(content='', embed=embed)  # Update the temporary message with the game embed

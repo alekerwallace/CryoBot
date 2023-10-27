@@ -54,7 +54,7 @@ def register_blackjack_command(client):
             description=f"Click ✅ to hit, ❌ to stand, or 🪚 to split.\n\n"
                         f"Your hand: {', '.join(player_hand)}\nTotal: {hand_value(player_hand)}\n\n"  # Added \n here
                         f"Dealer's face-up card: {dealer_hand[0]}",
-            color=0x00FF00
+            color=0xfdfdfd
         )
         # Edit the temporary message with the game embed
         await message.edit(content='', embed=embed)  # Update the temporary message with the game embed

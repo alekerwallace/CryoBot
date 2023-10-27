@@ -17,8 +17,9 @@ from commands import eightball
 from commands import blackjack
 from commands import hangman
 from commands import leaderboard
-#from commands import counting
+from commands import counting
 from commands import coinflip
+from commands import randomfact
 
 # Load environment variables from .env file
 load_dotenv()
@@ -71,8 +72,9 @@ eightball.register_eight_ball_command(client)
 blackjack.register_blackjack_command(client)
 hangman.register_hangman_command(client)
 leaderboard.register_leaderboard_command(client)
-#counting.register_counting_command(client)
+counting.register_counting_command(client)
 coinflip.register_coin_flip_command(client)
+randomfact.register_randomfact_command(client)
 
 # Retrieve the DISCORD_TOKEN environment variable
 token = os.environ.get('DISCORD_TOKEN')
