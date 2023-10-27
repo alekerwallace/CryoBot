@@ -1,11 +1,32 @@
 import discord
 import random
 from discord.ext import commands
+import nltk
+from nltk.corpus import reuters
+from nltk import FreqDist
+
+# Download the dataset
+nltk.download('reuters')
+
+# Preprocess the words: convert to lowercase and filter out non-words
+words = [word.lower() for word in reuters.words() if word.isalpha()]
+
+# Create a frequency distribution
+freq_dist = FreqDist(words)
+
+# Get the 3000 most common words
+common_words = [word for word, freq in freq_dist.most_common(3000)]
+
+def get_hangman_word():
+    while True:
+        word = random.choice(common_words)
+        if len(word) >= 5:
+            return word
 
 # Function for game to select word
-word_list = ['python', 'java', 'javascript', 'discord', 'hangman']
-def get_hangman_word():
-    return random.choice(word_list)
+#word_list = ['python', 'java', 'javascript', 'discord', 'hangman']
+#def get_hangman_word():
+#    return random.choice(word_list)
 
 # Mapping emojis to letters
 emoji_to_letter = {
@@ -80,7 +101,7 @@ def register_hangman_command(client):
 
         def get_description(message):
             display_word = get_display_word(word_to_guess, correct_guesses)
-            return f"Word to guess: {display_word}\n\n**{message} Attempts remaining: {attempts_remaining}**"
+            return f"**To play**\nReact with the region_indicator letter emoji for the letter you would like to guess. For example, to guess 'a' you would react with 'regional_indicator_a' or :regional_indicator_a:. You can type 'regional' into the emoji search bar to quickly bring up a list of letter emojis.\n\nWord to guess: {display_word}\n\n**{message} Attempts remaining: {attempts_remaining}**"
 
         # Creating the initial embed with instructions
         embed = discord.Embed(
@@ -109,10 +130,12 @@ def register_hangman_command(client):
             letter = get_letter(str(reaction.emoji))
             if letter:
                 print(f"The letter for emoji {reaction.emoji} is {letter}")
-                attempts_remaining -= 1
-                if attempts_remaining < 1:
-                    embed.description=get_description("No attempts remaining. You lose.")
+                if attempts_remaining < 0:
                     await message.remove_reaction(reaction, user)
+                else:
+                    attempts_remaining -= 1
+                if attempts_remaining < 1:
+                    embed.description=get_description(f"You lose.\n\nThe word was {word_to_guess}")
                 elif letter_in_word(letter):
                     correct_guesses.append(letter)
                     display_word = get_display_word(word_to_guess, correct_guesses)
@@ -120,6 +143,7 @@ def register_hangman_command(client):
                         embed.description=get_description("Correct guess!")
                     else:
                         embed.description=get_description("YOU WIN!")
+                        attempts_remaining=0
                 else:
                     embed.description=get_description("WRONG!")
                 await message.edit(embed=embed)
