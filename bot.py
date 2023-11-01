@@ -17,13 +17,15 @@ from commands import derivative
 from commands import eightball
 from commands import blackjack
 from commands import hangman
-from commands import multiplayer
+#from commands import multiplayer
 from commands import leaderboard
-#from commands import counting
+from commands import counting
 from commands import coinflip
 from commands import randomfact
 from commands import hug
 from commands import hit
+from commands import purge
+from commands import annihilate
 
 # Load environment variables from .env file
 load_dotenv()
@@ -76,13 +78,15 @@ derivative.register_derivative_command(client)
 eightball.register_eight_ball_command(client)
 blackjack.register_blackjack_command(client)
 hangman.register_hangman_command(client)
-multiplayer.register_multiplayer_command(client)
+#multiplayer.register_multiplayer_command(client)
 leaderboard.register_leaderboard_command(client)
-#counting.register_counting_command(client)
+counting.register_counting_command(client)
 coinflip.register_coin_flip_command(client)
 randomfact.register_randomfact_command(client)
 hug.register_hug_command(client)
 hit.register_hit_command(client)
+purge.register_purge_command(client)
+annihilate.register_annihilate_command(client)
 
 # Retrieve the DISCORD_TOKEN environment variable
 token = os.environ.get('DISCORD_TOKEN')
