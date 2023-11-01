@@ -27,6 +27,7 @@ from commands import hit
 from commands import purge
 from commands import annihilate
 from commands import warn
+from commands import mute
 
 # Load environment variables from .env file
 load_dotenv()
@@ -89,6 +90,7 @@ hit.register_hit_command(client)
 purge.register_purge_command(client)
 annihilate.register_annihilate_command(client)
 warn.register_warn_command(client)
+mute.register_mute_command(client)
 
 # Retrieve the DISCORD_TOKEN environment variable
 token = os.environ.get('DISCORD_TOKEN')

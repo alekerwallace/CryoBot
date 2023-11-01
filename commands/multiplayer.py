@@ -70,6 +70,13 @@ class HangmanView(View):
         self.embed = embed
         self.interaction = interaction
 
+        # Example grouping: vowels and consonants
+        vowels = "aeiou"
+        consonants = "bcdfghjklmnpqrstvwxyz"
+
+        self.add_item(HangmanButton(letters=vowels, label="Vowels", view=self))
+        self.add_item(HangmanButton(letters=consonants, label="Consonants", view=self))
+
         for emoji, letter in emoji_to_letter.items():
             self.add_item(HangmanButton(letter=letter, emoji=emoji, view=self))
 

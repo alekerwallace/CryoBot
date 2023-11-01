@@ -1,8 +1,9 @@
 import discord
 
 def register_warn_command(client):
-    @client.tree.command(name="warn", description="Warn a user and provide a reason.")
+    @client.tree.command(name="warn", description="Warn a user.")
     @discord.app_commands.describe(user="The user to warn", reason="The reason for the warning")
+    @discord.app_commands.default_permissions(manage_roles=True)
     async def _warn(interaction: discord.Interaction, user: discord.Member, reason: str) -> None:
         # Send the warning to the user privately
         try:
