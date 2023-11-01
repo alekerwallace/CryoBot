@@ -13,13 +13,17 @@ set_start_time(datetime.utcnow())
 # Import the command files
 from commands import ping
 from commands import limit
+from commands import derivative
 from commands import eightball
 from commands import blackjack
 from commands import hangman
+from commands import multiplayer
 from commands import leaderboard
-from commands import counting
+#from commands import counting
 from commands import coinflip
 from commands import randomfact
+from commands import hug
+from commands import hit
 
 # Load environment variables from .env file
 load_dotenv()
@@ -51,12 +55,12 @@ class SlashClient(discord.Client):
 #        await client.change_presence(activity=custom_activity)
 
         # Zero Kelvin cool
-#        custom_activity = discord.CustomActivity(name="zero Kelvin cool")
-#        await client.change_presence(activity=custom_activity)
+        custom_activity = discord.CustomActivity(name="zero Kelvin cool")
+        await client.change_presence(activity=custom_activity)
 
         # Listening to humans 😬
-        music = discord.Activity(type=discord.ActivityType.listening, name="humans 😬")
-        await client.change_presence(activity=music)
+#        music = discord.Activity(type=discord.ActivityType.listening, name="humans 😬")
+#        await client.change_presence(activity=music)
 
         # Playing with the API
 #        game = discord.Game("with the API")
@@ -68,13 +72,17 @@ client = SlashClient()
 # Register commands
 ping.register_ping_command(client)
 limit.register_limit_command(client)
+derivative.register_derivative_command(client)
 eightball.register_eight_ball_command(client)
 blackjack.register_blackjack_command(client)
 hangman.register_hangman_command(client)
+multiplayer.register_multiplayer_command(client)
 leaderboard.register_leaderboard_command(client)
-counting.register_counting_command(client)
+#counting.register_counting_command(client)
 coinflip.register_coin_flip_command(client)
 randomfact.register_randomfact_command(client)
+hug.register_hug_command(client)
+hit.register_hit_command(client)
 
 # Retrieve the DISCORD_TOKEN environment variable
 token = os.environ.get('DISCORD_TOKEN')

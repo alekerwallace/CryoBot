@@ -1,7 +1,6 @@
 import discord
 import random
 from discord.ext import commands
-import random
 
 def load_common_words():
     with open('common_words.txt', 'r') as f:

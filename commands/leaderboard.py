@@ -8,7 +8,7 @@ from commands.data import user_scores, start_time
 # Function to register the leaderboard command
 def register_leaderboard_command(client):
     # Defining the leaderboard command
-    @client.tree.command(name="leaderboard", description="Show the top 10 players.")
+    @client.tree.command(name="leaderboard", description="Show the top 10 blackjack players.")
     async def leaderboard(interaction: discord.Interaction):
         print(user_scores)  # Debug print here
         hours_since_reset = (datetime.utcnow() - start_time).seconds // 3600
