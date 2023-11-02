@@ -3,7 +3,7 @@ import random
 import randfacts
 
 def register_randomfact_command(client):
-    @client.tree.command(name="fun-fact", description="Get a random fact!")
+    @client.tree.command(name="random-fact", description="Get an interesting fact!")
     async def randomfact(interaction: discord.Interaction):
         fun_fact = randfacts.get_fact()
 
