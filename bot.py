@@ -32,23 +32,10 @@ from commands import purge
 from commands import annihilate
 from commands import warn
 from commands import mute
-from commands import addwelcome
-#from commands import editwelcome
-from commands import removewelcome
+from commands import welcome
 
 # Load environment variables from .env file
 load_dotenv()
-
-# Replace channel mentions for welcome command
-async def replace_channel_mentions(guild, text):
-    matches = re.findall(r'\{channel:([^}]+)\}', text)
-    for match in matches:
-        channel = discord.utils.get(guild.text_channels, name=match)
-        if channel:
-            text = text.replace(f'{{channel:{match}}}', channel.mention)
-        else:
-            text = text.replace(f'{{channel:{match}}}', f'`{match}` (channel not found)')
-    return text
 
 # Counting
 def sympy_eval(expression):
@@ -113,7 +100,18 @@ class SlashClient(discord.Client):
         #       game = discord.Game("with the API")
         #       await client.change_presence(status=discord.Status.online, activity=game)
 
-        # For triggering the welcome message
+    # Replacing channel mentions
+    async def replace_channel_mentions(self, guild, text):
+        matches = re.findall(r'\{channel:([^}]+)\}', text)
+        for match in matches:
+            channel = discord.utils.get(guild.text_channels, name=match)
+            if channel:
+                text = text.replace(f'{{channel:{match}}}', channel.mention)
+            else:
+                text = text.replace(f'{{channel:{match}}}', f'`{match}` (channel not found)')
+        return text
+    
+    # For triggering the welcome message
     async def on_member_join(self, member):
         if not os.path.exists('welcome_settings.json'):
             return
@@ -124,14 +122,12 @@ class SlashClient(discord.Client):
         channel = member.guild.get_channel(settings['channel_id'])
         if channel:
             description = settings['description']
-            description = description.replace("{", "{{").replace("}", "}}")  # Escape curly braces
+            description = await self.replace_channel_mentions(member.guild, description)
             description = description.format(
                 member=member.mention,
                 user=member.name,
                 server=member.guild.name,
-                avatar=member.avatar.url
             )
-            description = await replace_channel_mentions(member.guild, description)
 
             embed = discord.Embed(title=settings['title'], description=description)
 
@@ -147,10 +143,11 @@ class SlashClient(discord.Client):
                     embed.color = discord.Color.default()
 
             if settings.get('footer'):
-                footer_text = settings['footer'].replace("{avatar}", member.avatar.url)
+                footer_text = settings['footer'].format(avatar=member.avatar.url)
                 embed.set_footer(text=footer_text)
 
-            embed.set_thumbnail(url=member.avatar.url)
+            if settings.get('show_avatar_thumbnail'):
+                embed.set_thumbnail(url=member.avatar.url)
 
             await channel.send(embed=embed)
 
@@ -158,11 +155,15 @@ class SlashClient(discord.Client):
         # Ignore messages sent by the bot itself
         if message.author == self.user:
             return
-
+        
         # Check if the message is from the target channel
         print(f"in on_message {message.channel.id} ?= {counting.counting_channel_id}")
         if message.channel.id == counting.counting_channel_id:
             print("in counting channel")
+            # Exit the function if no counting channel is set
+            if counting.counting_channel_id is None:
+                return
+            
             expression = message.content
             value = sympy_eval(expression)
             if value != False:
@@ -176,9 +177,6 @@ class SlashClient(discord.Client):
                     await message.channel.send("Incorrect. Count has been reset.")
                     counting.current_count = 0
                     counting.last_user_id = None
-                    
-
-# Add more conditions and responses as needed
 
 # Create an instance of SlashClient
 client = SlashClient()
@@ -193,6 +191,7 @@ hangman.register_hangman_command(client)
 #multiplayer.register_multiplayer_command(client)
 leaderboard.register_leaderboard_command(client)
 counting.register_counting_command(client)
+counting.register_removecounting_command(client)
 coinflip.register_coin_flip_command(client)
 randomfact.register_randomfact_command(client)
 dadjoke.register_dadjoke_command(client)
@@ -202,9 +201,8 @@ purge.register_purge_command(client)
 annihilate.register_annihilate_command(client)
 warn.register_warn_command(client)
 mute.register_mute_command(client)
-addwelcome.register_addwelcome_command(client)
-#editwelcome.register_editwelcome_command(client)
-removewelcome.register_removewelcome_command(client)
+welcome.register_addwelcome_command(client)
+welcome.register_removewelcome_command(client)
 
 # Retrieve the DISCORD_TOKEN environment variable
 token = os.environ.get('DISCORD_TOKEN')
