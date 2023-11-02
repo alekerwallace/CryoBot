@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 import json
 import re
+import sympy
 
 # For tracking how long the bot has been running for (for leaderboard.py)
 start_time = datetime.utcnow()
@@ -40,29 +41,53 @@ load_dotenv()
 
 # Replace channel mentions for welcome command
 async def replace_channel_mentions(guild, text):
-        matches = re.findall(r'\{channel:([^}]+)\}', text)
-        for match in matches:
-                channel = discord.utils.get(guild.text_channels, name=match)
-                if channel:
-                        text = text.replace(f'{{channel:{match}}}', channel.mention)
-                else:
-                        text = text.replace(f'{{channel:{match}}}', f'`{match}` (channel not found)')
-        return text
+    matches = re.findall(r'\{channel:([^}]+)\}', text)
+    for match in matches:
+        channel = discord.utils.get(guild.text_channels, name=match)
+        if channel:
+            text = text.replace(f'{{channel:{match}}}', channel.mention)
+        else:
+            text = text.replace(f'{{channel:{match}}}', f'`{match}` (channel not found)')
+    return text
+
+# Counting
+def sympy_eval(expression):
+    try:
+        # Parse the expression
+        expr = sympy.sympify(expression)
+        
+        # Evaluate the expression
+        result = expr.evalf()
+        
+        # Check if the result is very close to an integer
+        if result.is_real and abs(result - round(result)) < 1e-4:
+            integer_result = int(round(result))
+            
+            # Check if the integer result is positive
+            if integer_result > 0:
+                return integer_result
+                
+    except (sympy.SympifyError, TypeError) as e:
+        print(f"An error occurred: {e}")
+    
+    print(f"Not a positive integer {result}")    
+    return False
 
 # Slash commands
 class SlashClient(discord.Client):
-        def __init__(self) -> None:
-                intents = discord.Intents.default()
-                intents.members = True
-                super().__init__(intents=intents)
-                self.tree = discord.app_commands.CommandTree(self)
-        async def setup_hook(self) -> None:
-                self.tree.copy_global_to(guild=discord.Object(id=12345678900987654))
-                await self.tree.sync()
+    def __init__(self) -> None:
+        intents = discord.Intents.all()
+        intents.members = True
+        super().__init__(intents=intents)
+        self.tree = discord.app_commands.CommandTree(self)
+        
+    async def setup_hook(self) -> None:
+        self.tree.copy_global_to(guild=discord.Object(id=12345678900987654))
+        await self.tree.sync()
     
-        # Set bot status
-        async def on_connect(self):
-                print(f'Logged in as {client.user}')
+    # Set bot status
+    async def on_connect(self):
+        print(f'Logged in as {client.user}')
                 
                 # Error: coffee.exe not found
         #        custom_activity = discord.CustomActivity(name="error: coffee.exe not found")
@@ -77,8 +102,8 @@ class SlashClient(discord.Client):
         #        await client.change_presence(activity=custom_activity)
 
                 # Zero Kelvin cool
-                custom_activity = discord.CustomActivity(name="zero Kelvin cool")
-                await client.change_presence(activity=custom_activity)
+        custom_activity = discord.CustomActivity(name="zero Kelvin cool")
+        await client.change_presence(activity=custom_activity)
 
                 # Listening to humans 😬
         #       music = discord.Activity(type=discord.ActivityType.listening, name="humans 😬")
@@ -89,47 +114,71 @@ class SlashClient(discord.Client):
         #       await client.change_presence(status=discord.Status.online, activity=game)
 
         # For triggering the welcome message
-        async def on_member_join(self, member):
-                if os.path.exists('welcome_settings.json'):
-                        with open('welcome_settings.json', 'r') as f:
-                                settings = json.load(f)
+    async def on_member_join(self, member):
+        if not os.path.exists('welcome_settings.json'):
+            return
+        
+        with open('welcome_settings.json', 'r') as f:
+            settings = json.load(f)
 
-                channel = member.guild.get_channel(settings['channel_id'])
-                if channel:
-                        description = settings['description']
-                        description = description.replace("{", "{{").replace("}", "}}")  # Escape curly braces
-                        description = description.format(
-                                member=member.mention,
-                                user=member.name,
-                                server=member.guild.name,
-                                avatar=member.avatar.url
-                )
-                        description = await replace_channel_mentions(member.guild, description)
+        channel = member.guild.get_channel(settings['channel_id'])
+        if channel:
+            description = settings['description']
+            description = description.replace("{", "{{").replace("}", "}}")  # Escape curly braces
+            description = description.format(
+                member=member.mention,
+                user=member.name,
+                server=member.guild.name,
+                avatar=member.avatar.url
+            )
+            description = await replace_channel_mentions(member.guild, description)
 
-                        embed = discord.Embed(title=settings['title'], description=description)
+            embed = discord.Embed(title=settings['title'], description=description)
 
-                        # Set the color
-                        if settings.get('color'):
-                                try:
-                                        color_str = settings['color']
-                                        if not color_str.startswith('#'):
-                                                color_str = '#' + color_str
-                                        embed.color = discord.Color(int(color_str[1:], 16))
-                                except ValueError:
-                                        print("Invalid color format in welcome settings. Using default color.")
-                                        embed.color = discord.Color.default()
-                        
-                        if settings.get('footer'):
-                                footer_text = settings['footer'].replace("{avatar}", member.avatar.url)
-                                embed.set_footer(text=footer_text)
+            # Set the color
+            if settings.get('color'):
+                try:
+                    color_str = settings['color']
+                    if not color_str.startswith('#'):
+                            color_str = '#' + color_str
+                    embed.color = discord.Color(int(color_str[1:], 16))
+                except ValueError:
+                    print("Invalid color format in welcome settings. Using default color.")
+                    embed.color = discord.Color.default()
 
-                        if settings.get('footer'):
-                                embed.set_footer(text=settings['footer'])
+            if settings.get('footer'):
+                footer_text = settings['footer'].replace("{avatar}", member.avatar.url)
+                embed.set_footer(text=footer_text)
 
-                        embed.set_thumbnail(url=member.avatar.url)
+            embed.set_thumbnail(url=member.avatar.url)
 
-                        await channel.send(embed=embed)
+            await channel.send(embed=embed)
 
+    async def on_message(self, message: discord.Message):   
+        # Ignore messages sent by the bot itself
+        if message.author == self.user:
+            return
+
+        # Check if the message is from the target channel
+        print(f"in on_message {message.channel.id} ?= {counting.counting_channel_id}")
+        if message.channel.id == counting.counting_channel_id:
+            print("in counting channel")
+            expression = message.content
+            value = sympy_eval(expression)
+            if value != False:
+                print(f"New value is: {value}")
+                if counting.last_user_id != message.author.id and value == counting.current_count + 1:
+                    counting.current_count = value
+                    counting.last_user_id = message.author.id
+                    await message.add_reaction("✅")
+                else:
+                    await message.add_reaction("❌")
+                    await message.channel.send("Incorrect. Count has been reset.")
+                    counting.current_count = 0
+                    counting.last_user_id = None
+                    
+
+# Add more conditions and responses as needed
 
 # Create an instance of SlashClient
 client = SlashClient()
